@@ -1,0 +1,154 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<title>voice recognize test</title>	
+	<script type="text/javascript" src="jquery-1.10.1.min.js"></script>
+	<script type="text/javascript" src="jQuery.md5.js"></script> 
+	<script src="speex.min.js"></script>  
+	<script src="pcmdata.min.js"></script>      
+	</head>	
+	
+	<body onload= "load()">
+		<fieldset style="width:50%;margin:10px auto">
+		<p align="center" >点击开始button录音,点击停止button停止录音并进行识别</p>
+		<p align="center">
+		<input type="button" id="recordbutton" value="开始录音" onclick="StartRecording()"/>
+		<input type="button" id="speexEncodebutton" value="停止录音" onclick="speexEncode()"/>
+	  </p>
+	  <p id ="result" style="margin-bottom:100px;margin-top:50px">result:</p>
+	  </p>
+	  <script src="recorder.min.js"></script>	
+	  <script src="uploaddata.min.js"></script>	
+	  <script>
+	  
+	  
+	    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+		var audioContext = new AudioContext();
+		var audioInput = null,
+		    realAudioInput = null,
+		    inputPoint = null,
+		    audioRecorder = null;
+		var rafID = null;
+		var analyserContext = null;
+		var recIndex = 0;
+		
+		var recording = false;
+		var bRecorded = false;
+		
+		function load(){
+			initAudio();//初始化recorder
+			setAuthorization("http://portal.olavoice.com/cloudservice/api","51a4bb56ba954655a4fc834bfdc46af1","asr","68bff251789b426896e70e888f919a6d","nli");
+			setCallBackFromServerResult(getResultFromServer);
+		}
+		
+		function initAudio() {
+		        if (!navigator.getUserMedia)
+		            navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+		        if (!navigator.cancelAnimationFrame)
+		            navigator.cancelAnimationFrame = navigator.webkitCancelAnimationFrame || navigator.mozCancelAnimationFrame;
+		        if (!navigator.requestAnimationFrame)
+		            navigator.requestAnimationFrame = navigator.webkitRequestAnimationFrame || navigator.mozRequestAnimationFrame;
+	
+		    navigator.getUserMedia({audio:true}, gotStream, function(e) {
+		            alert('Error getting audio');
+		            console.log(e);
+		        });
+		}
+		
+		function gotStream(stream) {
+		    inputPoint = audioContext.createGain();
+	
+		    // Create an AudioNode from the stream.
+		    realAudioInput = audioContext.createMediaStreamSource(stream);
+		    audioInput = realAudioInput;
+		    audioInput.connect(inputPoint);
+		    audioRecorder = new Recorder( inputPoint );
+		}
+									
+		function StartRecording()
+		{
+	        // start recording
+	        if (audioRecorder == null)
+	        {
+	           initAudio();	
+	           alert("need initialize media");	
+	        }        
+	        audioRecorder.clear();
+	        audioRecorder.record();  
+	        recording = true;  
+	        bRecorded = false;
+	        ToggleLabels(); 
+	        RegisterCallBackToRecorder();	        
+		}
+		
+		function StopRecording()
+		{
+	        audioRecorder.stop();
+	        audioRecorder.getBuffers( gotBuffers );		
+	    }
+	  
+		function RegisterCallBackToRecorder()
+		{//检测语音结束后回调
+			audioRecorder.setCallBack(speexEncode);
+		}
+		
+	    function ToggleLabels()
+		{
+			if(recording)
+			{
+				document .getElementById("recordbutton").value = "录音中ֹ";	
+				document .getElementById("speexEncodebutton").value = "停止录音";		
+				var btn = document .getElementById("recordbutton").value;	
+	
+			}else{
+				document .getElementById("speexEncodebutton").value = "识别中";	
+				document .getElementById("recordbutton").value = "停止录音ֹ";								
+			}	
+	
+		}
+		
+		window.record = function(e)
+		{
+			if(!recording)
+			{
+				StartRecording();
+				recording = true;
+				bRecorded = false;
+			}
+			else
+			{
+				StopRecording();
+				recording = false;
+				bRecorded = true;
+			}
+	
+			ToggleLabels();
+		};
+	  
+	  window.speexEncode =  function()
+	  {
+			exportSpeex();		
+	  };
+	  
+	  
+     function exportSpeex()
+	 {
+		recording = false;
+		bRecorded = true;
+	    ToggleLabels();
+		audioRecorder.stop();				
+		audioRecorder.exportPCM(uploadSpeexData);
+	 }			 
+		
+     function getResultFromServer()
+     {
+    	 document .getElementById('result').innerText = JSON.stringify(result);
+		 document .getElementById("speexEncodebutton").value = "停止录音";	
+	     document .getElementById("recordbutton").value = "开始录音ֹ"
+     }
+	  </script>
+	</body>	
+	
+</html>	
