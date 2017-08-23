@@ -38,8 +38,9 @@
 		var bRecorded = false;
 		
 		function load(){
-			initAudio();//初始化recorder
-			setAuthorization("http://portal.olavoice.com/cloudservice/api","51a4bb56ba954655a4fc834bfdc46af1","asr","68bff251789b426896e70e888f919a6d","nli");
+			initAudio();//initialize recorder
+			setAuthorization("http://cn.olami.ai/cloudservice/api","36cb0887ba614d00a3b9c6434abfa933","asr","7ae9b25c210f43319d3bdd154b1201d5","nli");
+			//"http://portal.olavoice.com/cloudservice/api"
 			setCallBackFromServerResult(getResultFromServer);
 		}
 		
